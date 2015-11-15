@@ -13,3 +13,7 @@
 [submodule "third_party/litescope"]
 	path = third_party/litescope
 	url = https://github.com/enjoy-digital/litescope.git
+[submodule "third_party/liteusb"]
+	path = third_party/liteusb
+	url = https://github.com/enjoy-digital/liteusb.git
+	branch = legacy
