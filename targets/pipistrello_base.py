@@ -136,14 +136,15 @@ class BaseSoC(SDRAMSoC):
     }
     mem_map.update(SDRAMSoC.mem_map)
 
-    def __init__(self, platform, clk_freq=(83 + Fraction(1, 3))*1000*1000,
-                 sdram_controller_settings=LASMIconSettings(l2_size=32,
-                                                            with_bandwidth=True),
-                 firmware_ram_size=0xa000, firmware_filename=None, **kwargs):
+    def __init__(self, platform,
+                 firmware_ram_size=0x10000,
+                 firmware_filename=None,
+                 **kwargs):
+        clk_freq = (83 + Fraction(1, 3))*1000*1000
         SDRAMSoC.__init__(self, platform, clk_freq,
                           cpu_type=os.environ.get("ARCH", "lm32"),
                           integrated_rom_size=0x8000,
-                          sdram_controller_settings=sdram_controller_settings,
+                          sdram_controller_settings=LASMIconSettings(l2_size=32, with_bandwidth=True),
                           **kwargs)
 
         platform.add_extension(PipistrelloCustom)
