@@ -141,6 +141,7 @@ class BaseSoC(SDRAMSoC):
                                                             with_bandwidth=True),
                  firmware_ram_size=0xa000, firmware_filename=None, **kwargs):
         SDRAMSoC.__init__(self, platform, clk_freq,
+                          cpu_type=os.environ.get("ARCH", "lm32"),
                           integrated_rom_size=0x8000,
                           sdram_controller_settings=sdram_controller_settings,
                           **kwargs)
