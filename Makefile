@@ -29,7 +29,7 @@ CMD = $(PYTHON) \
   make.py \
   -X $(HDMI2USBDIR) \
   -t $(BOARD)_$(TARGET) \
-  -Ot firmware_filename $(HDMI2USBDIR)/firmware/lm32/firmware.bin \
+  -Ot firmware_filename $(HDMI2USBDIR)/firmware/softcpu/firmware.bin \
   $(PROGRAMMER_OPTION) \
   $(MISOC_EXTRA_CMDLINE)
 
@@ -39,8 +39,8 @@ else
 	FLTERM = $(MSCDIR)/tools/flterm
 endif
 
-# Every target has a lm32 softcore
-include Makefile.lm32
+# Every target has a softcpu core
+include Makefile.softcpu
 
 # The edid_debug and hdmi2usb also use the Cypress FX2
 ifneq ($(filter $(TARGET),edid_debug hdmi2usb),)
