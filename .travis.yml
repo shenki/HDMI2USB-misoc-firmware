@@ -21,6 +21,7 @@ addons:
 
 env:
   matrix:
+   # lm32 based soft CPU
    - ARCH=lm32 BOARD=atlys TARGET=base
    - ARCH=lm32 BOARD=atlys TARGET=hdmi2usb
    - ARCH=lm32 BOARD=atlys TARGET=hdmi2eth
@@ -28,9 +29,12 @@ env:
    - ARCH=lm32 BOARD=opsis TARGET=hdmi2usb
    - ARCH=lm32 BOARD=pipistrello TARGET=base
    # OpenRISC based soft CPU
-   - ARCH=or1k BOARD=pipistrello TARGET=base
    - ARCH=or1k BOARD=atlys TARGET=base
+   - ARCH=or1k BOARD=atlys TARGET=hdmi2usb
+   - ARCH=or1k BOARD=atlys TARGET=hdmi2eth
    - ARCH=or1k BOARD=opsis TARGET=base
+   - ARCH=or1k BOARD=opsis TARGET=hdmi2usb
+   - ARCH=or1k BOARD=pipistrello TARGET=base
 
 install:
  - $PWD/.travis/setup.sh
