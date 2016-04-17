@@ -1,79 +1,85 @@
-#include <stdio.h>
-#include <stdlib.h>
+typedef unsigned int u32;
 
-#include <irq.h>
-#include <uart.h>
-#include <time.h>
-#include <generated/csr.h>
-#include <generated/mem.h>
-#include <hw/flags.h>
-#include <console.h>
+static void *base = (void *)0xe0001000;
+#define	UART_RXTX	0x00
+#define UART_TXFULL	0x04
+#define UART_RXEMPTY	0x08
 
-#include "config.h"
-#include "ci.h"
-#include "processor.h"
-#include "encoder.h"
-#include "pattern.h"
-#include "hdmi_out0.h"
-#include "hdmi_out1.h"
-#include "fx2.h"
-#include "version.h"
+static u32 readl(volatile u32 *addr)
+{
+	return *addr;
+}
+
+static void writel(u32 *addr, u32 val)
+{
+	*addr = val;
+}
+
+static unsigned char uart_getc(void)
+{
+	return readl(base + UART_RXTX);
+}
+
+static void uart_putc(unsigned char value)
+{
+	writel(base + UART_RXTX, value);
+}
+
+static unsigned char uart_rxempty(void)
+{
+	return readl(base + UART_RXEMPTY);
+}
+
+static unsigned char uart_txfull(void)
+{
+	return readl(base + UART_TXFULL);
+}
+
+static void boot(long addr)
+{
+	asm("call r0");
+}
+
+static void reboot(void)
+{
+	boot(0x20000000);
+}
+
+#if defined (__lm32__)
+#define NOP "nop"
+#elif defined (__or1k__)
+#define NOP "l.nop"
+#else
+#error Unsupported architecture
+#endif
+
+static void cdelay(int i)
+{
+	while(i--)
+		__asm__ volatile(NOP);
+}
+
+void my_putc(char c)
+{
+	uart_putc(c);
+	while (uart_txfull());
+}
+
+void my_puts(char *s)
+{
+	while (*s)
+		my_putc(*s++);
+}
 
 int main(void)
 {
-	irq_setmask(0);
-	irq_setie(1);
-	uart_init();
-#ifdef CSR_HDMI_OUT0_I2C_W_ADDR
-	hdmi_out0_i2c_init();
-#endif
-#ifdef CSR_HDMI_OUT1_I2C_W_ADDR
-	hdmi_out1_i2c_init();
-#endif
+	/* We're missing the first character for some reason */
+	my_puts("Hello, World!\n");
 
-	puts("\r\nHDMI2USB firmware  http://timvideos.us/");
-	print_version();
+	/* Seems to require two characters before returning false */
+	while(uart_rxempty());
 
-	config_init();
-	time_init();
-	processor_init();
-	processor_start(config_get(CONFIG_KEY_RESOLUTION));
-
-	// Set HDMI Output 0 to be pattern
-#ifdef CSR_HDMI_OUT0_BASE
-	processor_set_hdmi_out0_source(VIDEO_IN_PATTERN);
-#endif
-	// Set HDMI Output 1 to be pattern
-#ifdef CSR_HDMI_OUT1_BASE
-	processor_set_hdmi_out1_source(VIDEO_IN_PATTERN);
-#endif
-	processor_update();
-
-	// Reboot the FX2 chip into HDMI2USB mode
-#ifdef CSR_FX2_RESET_OUT_ADDR
-	fx2_init();
-#endif
-
-	// Set Encoder to be pattern
-#ifdef ENCODER_BASE
-	processor_set_encoder_source(VIDEO_IN_PATTERN);
-	encoder_enable(1);
-	processor_update();
-#endif
-	ci_prompt();
-	while(1) {
-		processor_service();
-		ci_service();
-
-#ifdef CSR_FX2_RESET_OUT_ADDR
-		fx2_service(true);
-#endif
-
-/* XXX FIX DDR conflict between DMA and L2 cache */
-#if 0
-		pattern_service();
-#endif
-	}
+	reboot();
 
 	return 0;
 }
