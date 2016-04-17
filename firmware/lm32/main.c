@@ -61,6 +61,7 @@ static void cdelay(int i)
 
 void my_putc(char c)
 {
+	while (uart_txfull());
 	uart_putc(c);
 	while (uart_txfull());
 }
@@ -73,10 +74,8 @@ void my_puts(char *s)
 
 int main(void)
 {
-	/* We're missing the first character for some reason */
 	my_puts("Hello, World!\n");
 
-	/* Seems to require two characters before returning false */
 	while(uart_rxempty());
 
 	reboot();
