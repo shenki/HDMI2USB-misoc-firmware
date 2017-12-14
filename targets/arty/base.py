@@ -13,6 +13,7 @@ from litedram.core import ControllerSettings
 from gateware import info
 from gateware import led
 from gateware import spi_flash
+from gateware import reset
 
 from targets.utils import csr_map_update, period_ns
 
@@ -27,6 +28,9 @@ class _CRG(Module):
 
         clk100 = platform.request("clk100")
         rst = platform.request("cpu_reset")
+        n_rst = Signal()
+        n_rst.eq(~rst)
+        self.reset_gpio = reset.CpuResetPin(n_rst)
 
         pll_locked = Signal()
         pll_fb = Signal()
@@ -99,6 +103,7 @@ class BaseSoC(SoCSDRAM):
         "info",
         "leds",
         "rgb_leds",
+        "reset",
     )
     csr_map_update(SoCSDRAM.csr_map, csr_peripherals)
 
@@ -122,6 +127,8 @@ class BaseSoC(SoCSDRAM):
         self.submodules.info = info.Info(platform, self.__class__.__name__)
         self.submodules.leds = led.ClassicLed(Cat(platform.request("user_led", i) for i in range(4)))
         self.submodules.rgb_leds = led.RGBLed(platform.request("rgb_leds"))
+
+        self.submodules.reset = self.crg.reset_gpio 
 
         # spi flash
         spiflash_pads = platform.request(spiflash)
